@@ -7,28 +7,37 @@ function HomeScreen() {
   const [success, setSuccess] = useState(false);
   const [ticker, setTicker] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [test, setTest] = useState("");
 
   const accessToken = JSON.parse(localStorage.getItem("access"));
 
+  const getData = () => {
+    const config = {
+      headers: {
+        "Content-type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
+    return axios
+      .get("/api/wallet/", config)
+      .then(({ data }) => {
+        console.log("RES", data.assets);
+        return data;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   useEffect(() => {
     if (!success) {
-      async function getWallet() {
-        const config = {
-          headers: {
-            "Content-type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        };
-        const { data } = await axios.get("/api/wallet/", config);
-        setWallet(data);
+      getData().then((data) => {
+        console.log("RES.DATA", data.assets);
+        setWallet(data.assets);
         setSuccess(true);
-        console.log(data);
-      }
-      getWallet();
-    } else {
-      console.log("loading");
+      });
     }
-  }, [success, accessToken]);
+  }, [success]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -76,7 +85,7 @@ function HomeScreen() {
           <Row>
             {success && (
               <ListGroup className='my-3'>
-                {wallet.assets.map((asset, index) => (
+                {wallet.map((asset, index) => (
                   <ListGroup.Item key={index}>
                     {asset.ticker}, {asset.name}
                   </ListGroup.Item>
