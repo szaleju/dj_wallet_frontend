@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { ListGroup, Row, Col, Form, Button, Table } from "react-bootstrap";
+import {
+  ListGroup,
+  Row,
+  Col,
+  Form,
+  Button,
+  Table,
+  Tabs,
+  Tab,
+  ButtonGroup,
+} from "react-bootstrap";
 import axios from "axios";
 import { getData, getTransactions, config } from "../api/HomeScreenApi";
 
@@ -29,11 +39,11 @@ function HomeScreen() {
     if (!success) {
       getData().then((data) => {
         setWallet(data.assets);
-        setSuccess(true);
       });
       getTransactions().then((data) => {
         console.log("DATA", data);
         setTransactions(data);
+        setSuccess(true);
       });
     }
   }, [success]);
@@ -41,9 +51,8 @@ function HomeScreen() {
   const handleSubmit = (e) => {
     e.preventDefault();
     addAsset();
+    setSuccess(false);
     console.log("poszlo!");
-    console.log(asset);
-    console.log(quantity);
   };
 
   return (
@@ -63,25 +72,94 @@ function HomeScreen() {
           <h2> Jakiś wykres </h2>
         </Col>
         <Col>
-          <Form onSubmit={handleSubmit}>
-            <Row>
-              <Col>
-                <Form.Control
-                  placeholder='Asset'
-                  value={asset}
-                  onChange={(e) => setAsset(e.target.value)}
-                />
-              </Col>
-              <Col>
-                <Form.Control
-                  placeholder='Ilość'
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button type='submit'>Dodaj</Button>
-          </Form>
+          <Row>
+            <Tabs defaultActiveKey='1' transition={false} id='noanim-tab'>
+              <Tab eventKey='1' title='Posiadane'>
+                <Form onSubmit={handleSubmit} className='my-3'>
+                  <Row>
+                    <Col>
+                      <Form.Group>
+                        <Form.Control
+                          as='select'
+                          size='sm'
+                          value={asset}
+                          onChange={(e) => setAsset(e.target.value)}
+                        >
+                          {console.log(asset)}
+                          <option>Wybierz...</option>
+                          {success &&
+                            wallet.map((asset, index) => (
+                              <option key={index} value={asset.id}>
+                                {asset.ticker}, {asset.name}
+                              </option>
+                            ))}
+                        </Form.Control>
+                      </Form.Group>
+                    </Col>
+                    <Col>
+                      <Form.Control
+                        size='sm'
+                        placeholder='Ilość...'
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                      />
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      <ButtonGroup className='d-flex'>
+                        <Button type='submit' className='m-3' size='sm' block>
+                          Kup
+                        </Button>
+                      </ButtonGroup>
+                    </Col>
+                    <Col>
+                      <ButtonGroup className='d-flex'>
+                        <Button type='submit' className='m-3' size='sm' block>
+                          Sprzedaj
+                        </Button>
+                      </ButtonGroup>
+                    </Col>
+                  </Row>
+                </Form>
+              </Tab>
+              <Tab eventKey='2' title='Nowy'>
+                <Form onSubmit={handleSubmit} className='my-3'>
+                  <Row>
+                    <Col>
+                      <Form.Group>
+                        <Form.Control
+                          size='sm'
+                          placeholder='Asset'
+                          value={asset}
+                          onChange={(e) => setAsset(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col>
+                      <Form.Control
+                        size='sm'
+                        placeholder='Ilość...'
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                      />
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      <ButtonGroup className='d-flex'>
+                        <Button type='submit' className='m-3' size='sm' block>
+                          Dodaj
+                        </Button>
+                      </ButtonGroup>
+                    </Col>
+                    <Col></Col>
+                  </Row>
+                </Form>
+              </Tab>
+            </Tabs>
+          </Row>
+
           <Row>
             {success && (
               <ListGroup className='my-3'>
@@ -111,8 +189,8 @@ function HomeScreen() {
               {transactions.map((transaction, index) => (
                 <tr key={index}>
                   <td>{transaction.id}</td>
-                  <td>{transaction.date}</td>
-                  <td>{transaction.asset}</td>
+                  <td>{transaction.date.substring(0, 10)}</td>
+                  <td>{transaction.asset_name}</td>
                   <td>{transaction.quantity}</td>
                 </tr>
               ))}
