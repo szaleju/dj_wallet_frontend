@@ -1,48 +1,48 @@
 import React, { useState, useEffect } from "react";
-import { ListGroup, Row, Col, Form, Button, ButtonGroup } from "react-bootstrap";
+import { ListGroup, Row, Col, Form, Button, Table } from "react-bootstrap";
 import axios from "axios";
+import { getData, getTransactions, config } from "../api/HomeScreenApi";
 
 function HomeScreen() {
   const [wallet, setWallet] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [success, setSuccess] = useState(false);
-  const [ticker, setTicker] = useState("");
+  const [asset, setAsset] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [test, setTest] = useState("");
 
-  const accessToken = JSON.parse(localStorage.getItem("access"));
-
-  const getData = () => {
-    const config = {
-      headers: {
-        "Content-type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    };
-    return axios
-      .get("/api/wallet/", config)
-      .then(({ data }) => {
-        console.log("RES", data.assets);
-        return data;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  const addAsset = async () => {
+    try {
+      await axios.post(
+        "api/transaction/",
+        {
+          asset: asset,
+          quantity: quantity,
+        },
+        config
+      );
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
     if (!success) {
       getData().then((data) => {
-        console.log("RES.DATA", data.assets);
         setWallet(data.assets);
         setSuccess(true);
+      });
+      getTransactions().then((data) => {
+        console.log("DATA", data);
+        setTransactions(data);
       });
     }
   }, [success]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    addAsset();
     console.log("poszlo!");
-    console.log(ticker);
+    console.log(asset);
     console.log(quantity);
   };
 
@@ -67,9 +67,9 @@ function HomeScreen() {
             <Row>
               <Col>
                 <Form.Control
-                  placeholder='Ticker'
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value)}
+                  placeholder='Asset'
+                  value={asset}
+                  onChange={(e) => setAsset(e.target.value)}
                 />
               </Col>
               <Col>
@@ -96,7 +96,32 @@ function HomeScreen() {
         </Col>
       </Row>
 
-      <Row></Row>
+      <Row>
+        {success && (
+          <Table striped bordered hover size='sm'>
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Data</th>
+                <th>Aktywo</th>
+                <th>Ilość</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.map((transaction, index) => (
+                <tr key={index}>
+                  <td>{transaction.id}</td>
+                  <td>{transaction.date}</td>
+                  <td>{transaction.asset}</td>
+                  <td>{transaction.quantity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+      </Row>
+      <p>{JSON.stringify(transactions)}</p>
+      <p>{JSON.stringify(wallet)}</p>
     </div>
   );
 }
