@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Message from "../components/Message";
 import {
   ListGroup,
   Row,
@@ -17,10 +18,11 @@ function HomeScreen() {
   const [wallet, setWallet] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
   const [asset, setAsset] = useState("");
   const [quantity, setQuantity] = useState("");
 
-  const addAsset = async () => {
+  const tradeAsset = async () => {
     try {
       await axios.post(
         "api/transaction/",
@@ -30,6 +32,15 @@ function HomeScreen() {
         },
         config
       );
+    } catch (err) {
+      console.log("LIPTON", err);
+      setError(true);
+    }
+  };
+
+  const addAsset = async () => {
+    try {
+      await axios.post("api/transaction/", {}, config);
     } catch (err) {
       console.log(err);
     }
@@ -48,11 +59,16 @@ function HomeScreen() {
     }
   }, [success]);
 
-  const handleSubmit = (e) => {
+  const handleTrade = (e) => {
     e.preventDefault();
-    addAsset();
-    setSuccess(false);
+    tradeAsset().then(() => {
+      setSuccess(false);
+    });
     console.log("poszlo!");
+  };
+
+  const handleAdd = () => {
+    console.log("added!");
   };
 
   return (
@@ -75,7 +91,7 @@ function HomeScreen() {
           <Row>
             <Tabs defaultActiveKey='1' transition={false} id='noanim-tab'>
               <Tab eventKey='1' title='Posiadane'>
-                <Form onSubmit={handleSubmit} className='my-3'>
+                <Form onSubmit={handleTrade} className='my-3'>
                   <Row>
                     <Col>
                       <Form.Group>
@@ -124,7 +140,7 @@ function HomeScreen() {
                 </Form>
               </Tab>
               <Tab eventKey='2' title='Nowy'>
-                <Form onSubmit={handleSubmit} className='my-3'>
+                <Form onSubmit={handleTrade} className='my-3'>
                   <Row>
                     <Col>
                       <Form.Group>
@@ -159,7 +175,7 @@ function HomeScreen() {
               </Tab>
             </Tabs>
           </Row>
-
+          {error ? <Message variant='danger'>Źle baranie!</Message> : ""}
           <Row>
             {success && (
               <ListGroup className='my-3'>
